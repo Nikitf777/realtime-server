@@ -47,6 +47,23 @@ void RealTimeServer::listen()
 	}
 }
 
+void RealTimeServer::mainLoop()
+{
+	std::vector<DataPackage> packagesToSend;
+	packagesToSend.reserve(_serverCapacity);
+	std::chrono::steady_clock::time_point time;
+	while (true)
+	{
+		time = std::chrono::steady_clock::now();
+
+		// some work
+		for (auto client : _clients) {
+			packagesToSend.push_back(client->_receivedPackages.back());
+		}
+
+	}
+}
+
 RealTimeServer::Client::Client(clserv::TcpSocket socket)
 {
 	_stop = true;
@@ -54,8 +71,19 @@ RealTimeServer::Client::Client(clserv::TcpSocket socket)
 		while (true)
 		{
 			DataPackage package;
-			socket.receiveString(512);
-			_receivedPackages.push(package);
+			//char buffer[512];
+			char buffer[8];
+			//socket.receive(buffer, sizeof(buffer));
+			recv((SOCKET)socket, buffer, sizeof(buffer), 0);
+			//std::cout << buffer << '\n';
+			float x, y;
+			char xBytes[4] = {buffer[0], buffer[1], buffer[2], buffer[3]};
+			char yBytes[4] = {buffer[4], buffer[5], buffer[6], buffer[7]};
+			//memcpy(&x, &xBytes, sizeof(x));
+			//memcpy(&y, &yBytes, sizeof(y));
+			memcpy(&package, &buffer, sizeof(package));
+			std::cout << '(' << package.x << ',' << package.y << ')' << '\n';
+			//_receivedPackages.push(package);
 		}
 		}).detach();
 

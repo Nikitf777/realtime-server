@@ -151,10 +151,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Clock.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\RealTimeServer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Clock.h" />
     <ClInclude Include="src\RealTimeServer.h" />
   </ItemGroup>
   <ItemGroup>

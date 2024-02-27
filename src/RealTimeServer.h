@@ -5,19 +5,14 @@ class RealTimeServer : clserv::TcpListenerAsync
 {
 public:
 	struct DataPackage {
-
+		float x, y;
 	};
 
-	class NextActionQueue : TcpListenerAsync::NextAction {
-		std::queue<DataPackage>* _packages;
-	};
-
-	class Client {
+	struct Client {
 		std::queue<DataPackage> _receivedPackages;
 		std::atomic<bool> _stop;
 		DataPackage _dataToSend;
 
-	public:
 		Client(clserv::TcpSocket socket);
 
 		void stop();
