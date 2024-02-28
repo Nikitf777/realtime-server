@@ -92,7 +92,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\Programming\CPP\BasicMultiplayerGame\AsyncClientServerLibrary\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Nullable;$(SolutionDir)AsyncClientServerLibrary\src</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -108,7 +108,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\Programming\CPP\BasicMultiplayerGame\AsyncClientServerLibrary\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Nullable;$(SolutionDir)AsyncClientServerLibrary\src</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -125,7 +125,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>D:\Programming\CPP\BasicMultiplayerGame\AsyncClientServerLibrary\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Nullable;$(SolutionDir)AsyncClientServerLibrary\src</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -141,7 +141,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>D:\Programming\CPP\BasicMultiplayerGame\AsyncClientServerLibrary\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Nullable;$(SolutionDir)AsyncClientServerLibrary\src</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -151,13 +151,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\ClientSocket.cpp" />
     <ClCompile Include="src\Clock.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\RealTimeServer.cpp" />
+    <ClCompile Include="Test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\ClientSocket.h" />
     <ClInclude Include="src\Clock.h" />
     <ClInclude Include="src\RealTimeServer.h" />
+    <ClInclude Include="Test.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AsyncClientServerLibrary\AsyncClientServerLibrary.vcxproj">

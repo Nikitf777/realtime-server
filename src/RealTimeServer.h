@@ -1,5 +1,6 @@
 #pragma once
 #include "TcpListenerAsync.h"
+#include "ClientSocket.h"
 
 class RealTimeServer : clserv::TcpListenerAsync
 {
@@ -7,20 +8,9 @@ public:
 	struct DataPackage {
 		float x, y;
 	};
-
-	struct Client {
-		std::queue<DataPackage> _receivedPackages;
-		std::atomic<bool> _stop;
-		DataPackage _dataToSend;
-
-		Client(clserv::TcpSocket socket);
-
-		void stop();
-		void send(DataPackage data);
-	};
 	
 private:
-	std::vector<Client*> _clients;
+	std::vector<ClientSocket*> _clients;
 	std::vector<DataPackage> _dataToSend;
 	const uint8_t _serverCapacity;
 

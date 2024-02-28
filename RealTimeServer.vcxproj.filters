@@ -24,12 +24,24 @@
     <ClCompile Include="src\Clock.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\ClientSocket.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\RealTimeServer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Clock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ClientSocket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Test.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
