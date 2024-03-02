@@ -1,6 +1,7 @@
 #pragma once
 #include "TcpListenerAsync.h"
 #include "ClientSocket.h"
+#include "AutoMap.h"
 
 class RealTimeServer : clserv::TcpListenerAsync
 {
@@ -10,7 +11,7 @@ public:
 	};
 	
 private:
-	std::vector<ClientSocket*> _clients;
+	AutoMap<ClientSocket*> _clients;
 	std::vector<DataPackage> _dataToSend;
 	const uint8_t _serverCapacity;
 

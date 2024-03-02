@@ -51,17 +51,29 @@ char ClientSocket::getBulletMoved(char bytes[], char from)
 }
 ClientSocket::ClientSocket(clserv::TcpSocket socket)
 {
+	_socket = socket;
 	_stop = true;
-	std::thread([this, socket] {
-		Receiving(socket);
+	std::thread([this] {
+		Receiving();
 		}).detach();
 
-	std::thread([this, socket] {
-		Sending(socket);
+	std::thread([this] {
+		Sending();
 		}).detach();
 }
 
-void ClientSocket::Sending(const clserv::TcpSocket& socket)
+void ClientSocket::connect(char id)
+{
+	_id = id;
+	char buffer[1] = { _id };
+	_socket.send(buffer, sizeof(buffer));
+	char name[19];
+	_socket.receive(name, sizeof(name));
+	for (char i = 0; i < 19; i++)
+		_name[i] = name[i];
+}
+
+void ClientSocket::Sending()
 {
 	while (true)
 	{
@@ -69,28 +81,17 @@ void ClientSocket::Sending(const clserv::TcpSocket& socket)
 		{
 			std::this_thread::yield();
 		}
-		socket.send("hello");
+		_socket.send(_bytesToSend.data(), _bytesToSend.size());
 		_stop = true;
 	}
 }
 
-void ClientSocket::Receiving(const clserv::TcpSocket& socket)
+void ClientSocket::Receiving()
 {
-	//bool connected;
-	//bool spawned;
-	//std::optional<Moved> moved;
-	//std::optional<float> rotated;
-	//bool shot;
-	//bool died;
-	//std::optional<BulletSpawned> bulletSpawned;
-	//std::optional<BulletMoved> bulletMoved;
-	//bool bulletCollided;
-	//bool bulletDissapeared;
-while (true)
+	while (true)
 	{
 		char buffer[64];
-		char q = recv((SOCKET)socket, buffer, sizeof(buffer), 0);
-		//std::cout << "received " << q << " bytes\n";
+		char q = recv((SOCKET)_socket, buffer, sizeof(buffer), 0);
 		char pos = 0;
 		spawned = buffer[pos];
 		pos++;
@@ -106,8 +107,6 @@ while (true)
 		pos++;
 		bulletDissapeared = buffer[pos];
 		std::cout << std::endl;
-		//if (rotated.has_value())
-		//	std::cout << rotated.value();
 	}	
 }
 

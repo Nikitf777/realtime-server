@@ -33,7 +33,7 @@ RealTimeServer::RealTimeServer(int port, uint8_t serverCapacity) :
 	TcpListenerAsync(port),
 	_serverCapacity(serverCapacity)
 {
-	_clients.reserve(_serverCapacity);
+	//_clients.reserve(_serverCapacity);
 }
 
 void RealTimeServer::listen()
@@ -43,7 +43,9 @@ void RealTimeServer::listen()
 	{
 		_socket.listen();
 		TcpSocket clientSocket = _socket.accept();
-		_clients.push_back(new ClientSocket(clientSocket));
+		ClientSocket* newClient = new ClientSocket(clientSocket);
+		size_t newId = _clients.add(newClient);
+		newClient->connect(newId);
 	}
 }
 
@@ -57,7 +59,7 @@ void RealTimeServer::mainLoop()
 		time = std::chrono::steady_clock::now();
 
 		// some work
-		for (auto client : _clients) {
+		for (auto client : _clients.getMap()) {
 			//packagesToSend.push_back(client->_receivedPackages.back());
 		}
 
