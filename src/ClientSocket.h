@@ -1,52 +1,53 @@
 #pragma once
 #include "TcpSocket.h"
-#include "Nullable.h"
 #include <optional>
+#include <array>
+
+#include "PackageStructs.h"
 
 class ClientSocket {
-public:
-	struct Spawned { float x, y; };
-	struct Moved { float x, y; };
-	struct BulletSpawned { char bulletId; float rotation; };
-	struct BulletMoved { char bulletId; float x, y; };
-
 private:
 	clserv::TcpSocket _socket;
 	std::atomic<bool> _stop;
 	std::vector<char> _bytesToSend;
-	char _id;
-	char _name[19];
+	byte _id;
+	std::array<char, 19> _name;
 
 	bool _connected;
 	std::optional<Spawned> _spawned;
 	std::optional<Moved> _moved;
 	std::optional<float> _rotated;
 	bool _shot;
-	bool _died;
+	std::optional<char> _enemyKilled;
 	std::optional<BulletSpawned> _bulletSpawned;
 	std::optional<BulletMoved> _bulletMoved;
-	bool _bulletCollided;
-	bool _bulletDissapeared;
+	std::optional<byte> _bulletCollided;
+	std::optional<byte> _bulletDissapeared;
 
+	char getSpawned(char bytes[], char from);
 	char getMoved(char bytes[], char from);
 	char getRotated(char bytes[], char from);
+	char getShot(char bytes[], char from);
+	char getEnemyKilled(char bytes[], char from);
 	char getBulletSpawned(char bytes[], char from);
 	char getBulletMoved(char bytes[], char from);
+	char getBulletCollided(char bytes[], char from);
+	char getBulletDissapeared(char bytes[], char from);
 
 public:
-	std::function<void(char, char[19])> connected;
-	std::function<void(char, Spawned)> spawned;
-	std::function<void(char, Moved)> moved;
-	std::function<void(char, float)> rotated;
-	std::function<void(char)> shot;
-	std::function<void(char, char)> died;
-	std::function<void(char, BulletSpawned)> bulletSpawned;
-	std::function<void(char, BulletMoved)> bulletMoved;
-	std::function<void(char, char)> bulletCollided;
-	std::function<void(char, char)> bulletDissapeared;
+	std::function<void(byte, std::array<char, 19> name)> connected;
+	std::function<void(byte, Spawned)> spawned;
+	std::function<void(byte, Moved)> moved;
+	std::function<void(byte, float)> rotated;
+	std::function<void(byte)> shot;
+	std::function<void(byte, byte)> enemyKilled;
+	std::function<void(byte, BulletSpawned)> bulletSpawned;
+	std::function<void(byte, BulletMoved)> bulletMoved;
+	std::function<void(byte, byte)> bulletCollided;
+	std::function<void(byte, byte)> bulletDissapeared;
 
 	ClientSocket(clserv::TcpSocket socket);
-	void connect(char id);
+	void connect(byte id);
 	void Sending();
 	void Receiving();
 	void stop();

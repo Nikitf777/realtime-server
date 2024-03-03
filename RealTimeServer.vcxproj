@@ -71,20 +71,20 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)bin\$(Platform)$\(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)bin\intermediates\$(Platform)$\(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)bin\$(Platform)\(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediates\$(Platform)\(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)bin\$(Platform)$\(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)bin\intermediates\$(Platform)$\(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)bin\$(Platform)\(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediates\$(Platform)\(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)bin\$(Platform)$\(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)bin\intermediates\$(Platform)$\(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)bin\$(Platform)\(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediates\$(Platform)\(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)bin\$(Platform)$\(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)bin\intermediates\$(Platform)$\(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)bin\$(Platform)\(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediates\$(Platform)\(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -151,6 +151,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ByteStream\arduino\libraries\ByteStream\ByteStream.cpp" />
+    <ClCompile Include="ByteStream\ByteStream.cpp" />
+    <ClCompile Include="src\ServerPackageManager.cpp" />
     <ClCompile Include="src\ClientSocket.cpp" />
     <ClCompile Include="src\Clock.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -158,6 +161,11 @@
     <ClCompile Include="Test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ByteStream\arduino\libraries\ByteStream\ByteStream.h" />
+    <ClInclude Include="ByteStream\ByteStream.h" />
+    <ClInclude Include="src\PackageStructs.h" />
+    <ClInclude Include="src\SafeQueue.h" />
+    <ClInclude Include="src\ServerPackageManager.h" />
     <ClInclude Include="src\ClientSocket.h" />
     <ClInclude Include="src\Clock.h" />
     <ClInclude Include="src\RealTimeServer.h" />

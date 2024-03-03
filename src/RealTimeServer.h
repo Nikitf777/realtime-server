@@ -2,6 +2,7 @@
 #include "TcpListenerAsync.h"
 #include "ClientSocket.h"
 #include "AutoMap.h"
+#include "ServerPackageManager.h"
 
 class RealTimeServer : clserv::TcpListenerAsync
 {
@@ -14,6 +15,7 @@ private:
 	AutoMap<ClientSocket*> _clients;
 	std::vector<DataPackage> _dataToSend;
 	const uint8_t _serverCapacity;
+	ServerPackageManager _manager;
 
 	void onClientConnected(
 		clserv::TcpListenerAsync::NextAction* nextAction);

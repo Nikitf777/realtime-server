@@ -3,9 +3,8 @@
 
 int main() {
 
-	AutoMap<float> map;
-	//std::cout << sizeof(RealTimeServer::DataPackage);
 	RealTimeServer server(12345, 4);
-	server.listen();
+	std::thread([&server] {server.listen(); }).detach();
+	server.mainLoop();
 	return 0;
 }

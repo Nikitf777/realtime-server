@@ -1,0 +1,3 @@
+[submodule "ByteStream"]
+	path = ByteStream
+	url = https://github.com/PabloAlbiol/ByteStream.git

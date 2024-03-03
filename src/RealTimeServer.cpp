@@ -1,6 +1,5 @@
 #include "RealTimeServer.h"
 using namespace clserv;
-using namespace std;
 
 void RealTimeServer::onClientConnected(clserv::TcpListenerAsync::NextAction* nextAction)
 {
@@ -44,6 +43,28 @@ void RealTimeServer::listen()
 		_socket.listen();
 		TcpSocket clientSocket = _socket.accept();
 		ClientSocket* newClient = new ClientSocket(clientSocket);
+
+		newClient->connected = [this](byte id, std::array<char, 19> name) {
+			_manager.onClientConnected(id, name); };
+		newClient->spawned = [this](byte id, Spawned spawned) {
+			_manager.onClientSpawned(id, spawned); };
+		newClient->moved = [this](byte id, Moved moved) {
+			_manager.onClientMoved(id, moved); };
+		newClient->rotated = [this](byte id, float rotation) {
+			_manager.onClientRotated(id, rotation); };
+		newClient->shot = [this](byte id) {
+			_manager.onClientShot(id); };
+		newClient->enemyKilled = [this](byte id, char enemyId) {
+			_manager.onClientEnemyKilled(id, enemyId); };
+		newClient->bulletSpawned = [this](byte id, BulletSpawned bulletSpawned) {
+			_manager.onClientBulletSpawned(id, bulletSpawned); };
+		newClient->bulletMoved = [this](byte id, BulletMoved bulletMoved) {
+			_manager.onClientBulletMoved(id, bulletMoved); };
+		newClient->bulletCollided = [this](byte id, char bulletId) {
+			_manager.onClientBulletCollided(id, bulletId); };
+		newClient->bulletDissapeared = [this](byte id, char bulletDissapeared) {
+			_manager.onClientBulletDissapeared(id, bulletDissapeared); };
+
 		size_t newId = _clients.add(newClient);
 		newClient->connect(newId);
 	}
@@ -56,12 +77,31 @@ void RealTimeServer::mainLoop()
 	std::chrono::steady_clock::time_point time;
 	while (true)
 	{
-		time = std::chrono::steady_clock::now();
+		//const clock_t begin_time = clock();
+		//std::cout << float(clock() - begin_time) / CLOCKS_PER_SEC;
 
-		// some work
-		for (auto client : _clients.getMap()) {
-			//packagesToSend.push_back(client->_receivedPackages.back());
-		}
+		auto startTime = std::chrono::high_resolution_clock::now();
 
+		ByteStream stream = _manager.getByteStream();
+		auto length = stream.getLength();
+		//std::cout << "stream length: " << length << '\n';
+		unsigned char streamBytes[1024];
+		stream.getBuf(streamBytes);
+
+		std::vector<char> message;
+		message.reserve(length);
+
+		for (unsigned short i = 0; i < length; i++)
+			message[i] = streamBytes[i];
+
+		auto clients = _clients.getMap();
+		for (auto& client : clients)
+			client.second->send(message);
+
+		auto endTime = std::chrono::high_resolution_clock::now();
+		double delta = std::chrono::duration<double, std::milli>(endTime - startTime).count();
+		const int tickRate = 100;
+		if (delta < tickRate)
+			std::this_thread::sleep_for(std::chrono::microseconds(tickRate * 1000 - (long long)(delta * 1000)));
 	}
 }
