@@ -2,7 +2,7 @@
 
 //#define DEBUG
 
-char ClientSocket::getSpawned(char bytes[], char from)
+byte ClientSocket::getSpawned(char bytes[], byte from)
 {
 	if (bytes[from] == false) { _spawned = std::nullopt; return ++from; }
 
@@ -20,7 +20,7 @@ char ClientSocket::getSpawned(char bytes[], char from)
 		spawned(_id, _spawned.value());
 	return from + 9;
 }
-char ClientSocket::getMoved(char bytes[], char from)
+byte ClientSocket::getMoved(char bytes[], byte from)
 {
 	if (bytes[from] == false) { _moved = std::nullopt; return ++from; }
 
@@ -39,7 +39,7 @@ char ClientSocket::getMoved(char bytes[], char from)
 	return from + 9;
 }
 
-char ClientSocket::getRotated(char bytes[], char from)
+byte ClientSocket::getRotated(char bytes[], byte from)
 {
 	if (bytes[from] == false) { _rotated = std::nullopt; return ++from; }
 
@@ -47,15 +47,15 @@ char ClientSocket::getRotated(char bytes[], char from)
 	char R[] = { bytes[from + 1], bytes[from + 2], bytes[from + 3], bytes[from + 4] };
 	memcpy(&r, &R, sizeof(r));
 	_rotated = r;
-#ifdef DEBUG
 	std::cout << "r = " << r << '\n';
+#ifdef DEBUG
 #endif // DEBUG
 
 	if (rotated != nullptr)
 		rotated(_id, _rotated.value());
 	return from + 5;
 }
-char ClientSocket::getShot(char bytes[], char from)
+byte ClientSocket::getShot(char bytes[], byte from)
 {
 	_shot = bytes[from];
 	if (_shot && shot != nullptr)
@@ -65,9 +65,9 @@ char ClientSocket::getShot(char bytes[], char from)
 		std::cout << "Shot: " << _shot << '\n';
 #endif // DEBUG
 
-	return ++from;
+	return from + 1;
 }
-char ClientSocket::getEnemyKilled(char bytes[], char from)
+byte ClientSocket::getEnemyKilled(char bytes[], byte from)
 {
 	if (bytes[from] == false) { _enemyKilled = std::nullopt; return ++from; }
 	_enemyKilled = bytes[from + 1];
@@ -76,14 +76,11 @@ char ClientSocket::getEnemyKilled(char bytes[], char from)
 		enemyKilled(_id, _enemyKilled.value());
 	return from + 2;
 }
-char ClientSocket::getBulletSpawned(char bytes[], char from)
+byte ClientSocket::getBulletSpawned(char bytes[], byte from)
 {
 	if (bytes[from] == false) { _bulletSpawned = std::nullopt; return ++from; }
 	byte id = bytes[from + 1];
-	float r = 1;
-	byte R[] = { bytes[from + 2], bytes[from + 3], bytes[from + 4], bytes[from + 5] };
-	memcpy(&r, &R, sizeof(r));
-	_bulletSpawned = { id, r };
+	_bulletSpawned = id;
 #ifdef DEBUG
 	std::cout << "Spawned with rotation: " << r << '\n';
 #endif // DEBUG
@@ -92,9 +89,9 @@ char ClientSocket::getBulletSpawned(char bytes[], char from)
 	if (bulletSpawned != nullptr)
 		bulletSpawned(_id, _bulletSpawned.value());
 
-	return from + 6;
+	return from + 2;
 }
-char ClientSocket::getBulletMoved(char bytes[], char from)
+byte ClientSocket::getBulletMoved(char bytes[], byte from)
 {
 	if (bytes[from] == false) { _bulletMoved = std::nullopt; return ++from; }
 	byte id = bytes[from + 1];
@@ -114,7 +111,7 @@ char ClientSocket::getBulletMoved(char bytes[], char from)
 
 	return from + 10;
 }
-char ClientSocket::getBulletCollided(char bytes[], char from)
+byte ClientSocket::getBulletCollided(char bytes[], byte from)
 {
 	if (bytes[from] == false) { _bulletCollided = std::nullopt; return ++from; }
 	_bulletCollided = bytes[from + 1];
@@ -127,12 +124,12 @@ char ClientSocket::getBulletCollided(char bytes[], char from)
 		bulletCollided(_id, _bulletCollided.value());
 	return from + 2;
 }
-char ClientSocket::getBulletDissapeared(char bytes[], char from)
+byte ClientSocket::getBulletDissapeared(char bytes[], byte from)
 {
 	if (bytes[from] == false) { _bulletDissapeared = std::nullopt; return ++from; }
 	_bulletDissapeared = bytes[from + 1];
-#ifdef DEBUG
 	std::cout << _bulletDissapeared.value() << " bullet dissapeared\n";
+#ifdef DEBUG
 #endif // DEBUG
 
 
@@ -144,6 +141,23 @@ ClientSocket::ClientSocket(clserv::TcpSocket socket)
 {
 	_socket = socket;
 	_stop = true;
+}
+
+void ClientSocket::authorize(byte id)
+{
+	_id = id;
+	char buffer[1] = { _id };
+	_socket.send(buffer, sizeof(buffer));
+	char nameBuffer[15];
+	char nameLength = _socket.receive(nameBuffer, sizeof(nameBuffer));
+	std::array<char, 15> name{};
+	for (char i = 0; i < nameLength; i++)
+		_name[i] = nameBuffer[i];
+	if (connected != nullptr)
+		connected(_id, _name);
+
+	_connected = true;
+
 	std::thread([this] {
 		Receiving();
 		}).detach();
@@ -151,21 +165,6 @@ ClientSocket::ClientSocket(clserv::TcpSocket socket)
 	std::thread([this] {
 		Sending();
 		}).detach();
-}
-
-void ClientSocket::connect(byte id)
-{
-	_id = id;
-	char buffer[1] = { _id };
-	_socket.send(buffer, sizeof(buffer));
-	char nameBuffer[19];
-	_socket.receive(nameBuffer, sizeof(nameBuffer));
-	std::array<char, 19> name;
-	for (char i = 0; i < 19; i++)
-		name[i] = nameBuffer[i];
-	_name = name;
-	if (connected != nullptr)
-		connected(_id, _name);
 }
 
 void ClientSocket::Sending()
@@ -176,9 +175,25 @@ void ClientSocket::Sending()
 		{
 			std::this_thread::yield();
 		}
-		int bytesCount = _socket.send(_bytesToSend.data(), _bytesToSend.size());
-		//std::cout << "sended " << bytesCount << " bytes" << '\n';
-		_stop = true;
+
+		try
+		{
+			int bytesCount = _socket.send(_bytesToSend.data(), _bytesToSend.size());
+#ifdef DEBUG
+			std::cout << "Sended " << bytesCount << " bytes to client " << (int)_id << '\n';
+#endif // DEBUG
+			_stop = true;
+		}
+		catch (const std::exception&)
+		{
+			if (disconnected != nullptr)
+				disconnected(_id);
+#ifdef DEBUG
+			std::cout << "Client " << _id << " disconnected\n";
+#endif // DEBUG
+
+			return;
+		}
 	}
 }
 
@@ -186,18 +201,17 @@ void ClientSocket::Receiving()
 {
 	while (true)
 	{
-		char buffer[64];
-		char q = recv((SOCKET)_socket, buffer, sizeof(buffer), 0);
-		char pos = getSpawned(buffer, 0);
-		pos = getMoved(buffer, pos);
-		pos = getRotated(buffer, pos);
-		pos = getShot(buffer, pos);
-		pos = getEnemyKilled(buffer, pos);
-		pos = getBulletSpawned(buffer, pos);
-		pos = getBulletMoved(buffer, pos);
-		pos = getBulletCollided(buffer, pos);
-		getBulletDissapeared(buffer, pos);
-		//std::cout << "good morning\n";
+		char buffer[128];
+		byte q = recv((SOCKET)_socket, buffer, sizeof(buffer), 0);
+		//byte pos = getSpawned(buffer, 0);
+		//pos = getMoved(buffer, pos);
+		//pos = getRotated(buffer, pos);
+		//pos = getShot(buffer, pos);
+		//pos = getEnemyKilled(buffer, pos);
+		//pos = getBulletSpawned(buffer, pos);
+		//pos = getBulletMoved(buffer, pos);
+		//pos = getBulletCollided(buffer, pos);
+		//getBulletDissapeared(buffer, pos);
 	}	
 }
 
@@ -208,6 +222,12 @@ void ClientSocket::stop()
 
 void ClientSocket::send(std::vector<char> bytes)
 {
+	if (!_connected) return;
 	_bytesToSend = bytes;
 	_stop = false;
+}
+
+bool ClientSocket::isConnected() const
+{
+	return _connected;
 }

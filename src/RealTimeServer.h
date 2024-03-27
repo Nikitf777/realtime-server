@@ -3,6 +3,7 @@
 #include "ClientSocket.h"
 #include "AutoMap.h"
 #include "ServerPackageManager.h"
+#include <list>
 
 class RealTimeServer : clserv::TcpListenerAsync
 {
@@ -13,18 +14,12 @@ public:
 	
 private:
 	AutoMap<ClientSocket*> _clients;
+	SafeQueue<std::function<ClientSocket*()>> _connectActions;
 	std::vector<DataPackage> _dataToSend;
 	const uint8_t _serverCapacity;
 	ServerPackageManager _manager;
 
-	void onClientConnected(
-		clserv::TcpListenerAsync::NextAction* nextAction);
-	void onMessageReceived(
-		clserv::TcpListenerAsync::NextAction* nextAction, std::string message);
-	void onMessageSended(
-		clserv::TcpListenerAsync::NextAction* nextAction, std::string message);
-
-	void handleClient(clserv::TcpSocket client);
+	void onClientDisconnected(byte id);
 
 public:
 	RealTimeServer(int port, uint8_t serverCapacity);

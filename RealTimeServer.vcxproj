@@ -151,30 +151,33 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ByteStream\arduino\libraries\ByteStream\ByteStream.cpp" />
     <ClCompile Include="ByteStream\ByteStream.cpp" />
     <ClCompile Include="src\ServerPackageManager.cpp" />
     <ClCompile Include="src\ClientSocket.cpp" />
-    <ClCompile Include="src\Clock.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\RealTimeServer.cpp" />
     <ClCompile Include="Test.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ByteStream\arduino\libraries\ByteStream\ByteStream.h" />
     <ClInclude Include="ByteStream\ByteStream.h" />
+    <ClInclude Include="src\SafeList.h" />
+    <ClInclude Include="src\AutoMap.h" />
     <ClInclude Include="src\PackageStructs.h" />
     <ClInclude Include="src\SafeQueue.h" />
     <ClInclude Include="src\ServerPackageManager.h" />
     <ClInclude Include="src\ClientSocket.h" />
-    <ClInclude Include="src\Clock.h" />
     <ClInclude Include="src\RealTimeServer.h" />
     <ClInclude Include="Test.h" />
+    <ClInclude Include="tsmap\ReadersWriterLock.h" />
+    <ClInclude Include="tsmap\tsmap.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AsyncClientServerLibrary\AsyncClientServerLibrary.vcxproj">
       <Project>{e950cd03-10eb-4583-b189-2a29cd560e2d}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="tsmap\README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

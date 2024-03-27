@@ -1,31 +1,9 @@
 #include "RealTimeServer.h"
 using namespace clserv;
 
-void RealTimeServer::onClientConnected(clserv::TcpListenerAsync::NextAction* nextAction)
+void RealTimeServer::onClientDisconnected(byte id)
 {
-	std::cout << socket;
-	nextAction->send("hello");
-}
-
-void RealTimeServer::onMessageReceived(clserv::TcpListenerAsync::NextAction* nextAction, std::string message)
-{
-	std::cout << message;
-	nextAction->send("hello2");
-}
-
-void RealTimeServer::onMessageSended(clserv::TcpListenerAsync::NextAction* nextAction, std::string message)
-{
-	nextAction->receive();
-}
-
-void RealTimeServer::handleClient(clserv::TcpSocket client)
-{
-	TcpListenerAsync::NextAction* nextAction = new TcpListenerAsync::NextAction(this, client);
-	onClientConnected(nextAction);
-	while (true)
-	{
-		nextAction->next();
-	}
+	_clients.remove(id);
 }
 
 RealTimeServer::RealTimeServer(int port, uint8_t serverCapacity) :
@@ -38,65 +16,96 @@ RealTimeServer::RealTimeServer(int port, uint8_t serverCapacity) :
 void RealTimeServer::listen()
 {
 	_isListening = true;
+	_socket.listen();
 	while (_isListening)
 	{
-		_socket.listen();
 		TcpSocket clientSocket = _socket.accept();
 		ClientSocket* newClient = new ClientSocket(clientSocket);
 
-		newClient->connected = [this](byte id, std::array<char, 19> name) {
-			_manager.onClientConnected(id, name); };
-		newClient->spawned = [this](byte id, Spawned spawned) {
-			_manager.onClientSpawned(id, spawned); };
-		newClient->moved = [this](byte id, Moved moved) {
-			_manager.onClientMoved(id, moved); };
-		newClient->rotated = [this](byte id, float rotation) {
-			_manager.onClientRotated(id, rotation); };
-		newClient->shot = [this](byte id) {
-			_manager.onClientShot(id); };
-		newClient->enemyKilled = [this](byte id, char enemyId) {
-			_manager.onClientEnemyKilled(id, enemyId); };
-		newClient->bulletSpawned = [this](byte id, BulletSpawned bulletSpawned) {
-			_manager.onClientBulletSpawned(id, bulletSpawned); };
-		newClient->bulletMoved = [this](byte id, BulletMoved bulletMoved) {
-			_manager.onClientBulletMoved(id, bulletMoved); };
-		newClient->bulletCollided = [this](byte id, char bulletId) {
-			_manager.onClientBulletCollided(id, bulletId); };
-		newClient->bulletDissapeared = [this](byte id, char bulletDissapeared) {
-			_manager.onClientBulletDissapeared(id, bulletDissapeared); };
+		_connectActions.safeEnqueue([this, newClient]() {
+			size_t newId = _clients.add(newClient);
+			newClient->authorize(newId);
+			return newClient;
+			});
 
-		size_t newId = _clients.add(newClient);
-		newClient->connect(newId);
+		newClient->connected = [this](byte id, std::array<char, 15> name) {
+			_manager.onClientConnected(id, name); };
+		//newClient->spawned = [this](byte id, Spawned spawned) {
+		//	_manager.onClientSpawned(id, spawned); };
+		//newClient->moved = [this](byte id, Moved moved) {
+		//	_manager.onClientMoved(id, moved); };
+		//newClient->rotated = [this](byte id, float rotation) {
+		//	_manager.onClientRotated(id, rotation); };
+		//newClient->shot = [this](byte id) {
+		//	_manager.onClientShot(id); };
+		//newClient->enemyKilled = [this](byte id, char enemyId) {
+		//	_manager.onClientEnemyKilled(id, enemyId); };
+		//newClient->bulletSpawned = [this](byte id, byte bulletId) {
+		//	_manager.onClientBulletSpawned(id, bulletId); };
+		//newClient->bulletMoved = [this](byte id, BulletMoved bulletMoved) {
+		//	_manager.onClientBulletMoved(id, bulletMoved); };
+		//newClient->bulletCollided = [this](byte id, char bulletId) {
+		//	_manager.onClientBulletCollided(id, bulletId); };
+		//newClient->bulletDissapeared = [this](byte id, char bulletDissapeared) {
+		//	_manager.onClientBulletDissapeared(id, bulletDissapeared); };
+
+		newClient->disconnected = [this](byte id) {
+			onClientDisconnected(id);
+			_manager.onClientDisconnected(id);
+			};
+
 	}
 }
 
 void RealTimeServer::mainLoop()
 {
-	std::vector<DataPackage> packagesToSend;
-	packagesToSend.reserve(_serverCapacity);
-	std::chrono::steady_clock::time_point time;
 	while (true)
 	{
 		//const clock_t begin_time = clock();
 		//std::cout << float(clock() - begin_time) / CLOCKS_PER_SEC;
 
 		auto startTime = std::chrono::high_resolution_clock::now();
+		if (_connectActions.size() > 0)
+		{
+			ByteStream stream = _manager.getAllConnectedPlayers();
+			auto message = stream.getVector();
+				for (int i = 0; i < _connectActions.size(); i++) {
+					ClientSocket* client = _connectActions.safeDequeue()();
+					std::cout
+						<< "mailLoop; "
+						<< "_allConnectedPlayers.size() = "
+						<< (int)message[0]
+						<< "; message.size() = "
+						<< (int)message.size()
+						<< std::endl;
+					char size;
+					if (message[0] == 3)
+						size = message[0];
+					size = message[0];
+					for (int j = 0; j < size; j++) {
+						int index = 16 * j + 1;
+						std::cout << "sended id " << (int)message[index] << std::endl;
+					}
+					client->send(message);
+				}
+		}
 
 		ByteStream stream = _manager.getByteStream();
-		auto length = stream.getLength();
-		//std::cout << "stream length: " << length << '\n';
-		unsigned char streamBytes[1024];
-		stream.getBuf(streamBytes);
+		std::vector<char> message = stream.getVector();
+		//unsigned char streamBytes[1024];
+		//auto length = stream.getBuf(streamBytes);
+		//
 
-		std::vector<char> message;
-		message.reserve(length);
+		//message.resize(length);
 
-		for (unsigned short i = 0; i < length; i++)
-			message[i] = streamBytes[i];
+		//for (unsigned short i = 0; i < length; i++)
+		//	message[i] = streamBytes[i];
 
-		auto clients = _clients.getMap();
-		for (auto& client : clients)
-			client.second->send(message);
+		auto& clients = _clients.getMap();
+		for (auto& client : clients) {
+			if (client.second->isConnected())
+				client.second->send(message);
+		}
 
 		auto endTime = std::chrono::high_resolution_clock::now();
 		double delta = std::chrono::duration<double, std::milli>(endTime - startTime).count();

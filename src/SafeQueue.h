@@ -5,10 +5,10 @@
 
 // Thread-safe queue
 template <typename T>
-class SafeQueue {
+class SafeQueue : public std::queue<T> {
 private:
     // Underlying queue 
-    std::queue<T> _queue;
+    //std::queue<T> _queue;
 
     // mutex for thread synchronization 
     std::mutex _mutex;
@@ -18,23 +18,21 @@ private:
 
 public:
     // Pushes an element to the queue 
-    void enqueue(T item);
+    void safeEnqueue(T item);
 
     // Pops an element off the queue 
-    T dequeue();
-
-    size_t size();
+    T safeDequeue();
 };
 
 template<typename T>
-inline void SafeQueue<T>::enqueue(T item)
+inline void SafeQueue<T>::safeEnqueue(T item)
 {
 
     // Acquire lock 
     std::unique_lock<std::mutex> lock(_mutex);
 
     // Add item 
-    _queue.push(item);
+    this->push(item);
 
     // Notify one thread that 
     // is waiting 
@@ -42,7 +40,7 @@ inline void SafeQueue<T>::enqueue(T item)
 }
 
 template<typename T>
-inline T SafeQueue<T>::dequeue()
+inline T SafeQueue<T>::safeDequeue()
 {
 
     // acquire lock 
@@ -50,18 +48,12 @@ inline T SafeQueue<T>::dequeue()
 
     // wait until queue is not empty 
     _cond.wait(lock,
-        [this]() { return !_queue.empty(); });
+        [this]() { return !this->empty(); });
 
     // retrieve item 
-    T item = _queue.front();
-    _queue.pop();
+    T item = this->front();
+    this->pop();
 
     // return item 
     return item;
-}
-
-template<typename T>
-inline size_t SafeQueue<T>::size()
-{
-    return _queue.size();
 }

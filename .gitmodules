@@ -1,3 +1,6 @@
 [submodule "ByteStream"]
 	path = ByteStream
 	url = https://github.com/PabloAlbiol/ByteStream.git
+[submodule "tsmap"]
+	path = tsmap
+	url = https://github.com/tsixta/tsmap.git

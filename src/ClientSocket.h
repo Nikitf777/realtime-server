@@ -11,46 +11,50 @@ private:
 	std::atomic<bool> _stop;
 	std::vector<char> _bytesToSend;
 	byte _id;
-	std::array<char, 19> _name;
+	std::array<char, 15> _name;
 
-	bool _connected;
+	bool _connected = false;
 	std::optional<Spawned> _spawned;
 	std::optional<Moved> _moved;
 	std::optional<float> _rotated;
 	bool _shot;
-	std::optional<char> _enemyKilled;
-	std::optional<BulletSpawned> _bulletSpawned;
+	std::optional<byte> _enemyKilled;
+	std::optional<byte> _bulletSpawned;
 	std::optional<BulletMoved> _bulletMoved;
 	std::optional<byte> _bulletCollided;
 	std::optional<byte> _bulletDissapeared;
 
-	char getSpawned(char bytes[], char from);
-	char getMoved(char bytes[], char from);
-	char getRotated(char bytes[], char from);
-	char getShot(char bytes[], char from);
-	char getEnemyKilled(char bytes[], char from);
-	char getBulletSpawned(char bytes[], char from);
-	char getBulletMoved(char bytes[], char from);
-	char getBulletCollided(char bytes[], char from);
-	char getBulletDissapeared(char bytes[], char from);
+	byte getSpawned(char bytes[], byte from);
+	byte getMoved(char bytes[], byte from);
+	byte getRotated(char bytes[], byte from);
+	byte getShot(char bytes[], byte from);
+	byte getEnemyKilled(char bytes[], byte from);
+	byte getBulletSpawned(char bytes[], byte from);
+	byte getBulletMoved(char bytes[], byte from);
+	byte getBulletCollided(char bytes[], byte from);
+	byte getBulletDissapeared(char bytes[], byte from);
 
 public:
-	std::function<void(byte, std::array<char, 19> name)> connected;
+	std::function<void(byte, std::array<char, 15> name)> connected;
 	std::function<void(byte, Spawned)> spawned;
 	std::function<void(byte, Moved)> moved;
 	std::function<void(byte, float)> rotated;
 	std::function<void(byte)> shot;
 	std::function<void(byte, byte)> enemyKilled;
-	std::function<void(byte, BulletSpawned)> bulletSpawned;
+	std::function<void(byte, byte)> bulletSpawned;
 	std::function<void(byte, BulletMoved)> bulletMoved;
 	std::function<void(byte, byte)> bulletCollided;
 	std::function<void(byte, byte)> bulletDissapeared;
 
+	std::function<void(byte)> disconnected;
+
 	ClientSocket(clserv::TcpSocket socket);
-	void connect(byte id);
+	void authorize(byte id);
 	void Sending();
 	void Receiving();
 	void stop();
 	void send(std::vector<char>);
+
+	bool isConnected() const;
 };
 

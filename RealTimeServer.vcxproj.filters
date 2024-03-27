@@ -21,9 +21,6 @@
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Clock.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\ClientSocket.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -33,18 +30,12 @@
     <ClCompile Include="src\ServerPackageManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ByteStream\arduino\libraries\ByteStream\ByteStream.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ByteStream\ByteStream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\RealTimeServer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Clock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\ClientSocket.h">
@@ -59,14 +50,26 @@
     <ClInclude Include="src\PackageStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ByteStream\arduino\libraries\ByteStream\ByteStream.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ByteStream\ByteStream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\SafeQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="tsmap\ReadersWriterLock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tsmap\tsmap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AutoMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SafeList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="tsmap\README.md" />
   </ItemGroup>
 </Project>
