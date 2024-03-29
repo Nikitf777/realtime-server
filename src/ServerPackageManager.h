@@ -9,11 +9,11 @@
 class ServerPackageManager
 {
 private:
-	SafeList<std::pair<byte, std::array<char, 15>>> _allConnectedClients;
+	SafeList<Player<Authorized>> _allConnectedClients;
 	SafeList<std::pair<byte, Spawned>> _allSpawnedClients;
 	SafeList<std::pair<byte, std::pair<byte, Transform>>> _allSpawnedBullets;
 
-	SafeQueue<std::pair<byte, std::array<char, 15>>> _connectedClients;
+	SafeQueue<Player<Authorized>> _connectedClients;
 	SafeQueue<std::pair<byte, Spawned>> _spawnedClients;
 	SafeQueue<std::pair<byte, Moved>> _movedClients;
 	SafeQueue<std::pair<byte, float>> _rotatedClients;
@@ -28,7 +28,7 @@ private:
 
 public:
 
-	void onClientAuthorized(byte id, std::array<char, 15> name);
+	void onClientAuthorized(Player<Authorized> event);
 	void onClientSpawned(byte id, Spawned spawned);
 	void onClientMoved(byte id, Moved moved);
 	void onClientRotated(byte id, float rotation);

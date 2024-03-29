@@ -31,8 +31,8 @@ void RealTimeServer::listen()
 			return newClient;
 			});
 
-		newClient->connected = [this](byte id, std::array<char, 15> name) {
-			_manager.onClientAuthorized(id, name); };
+		newClient->connected = [this](Player<Authorized> event) {
+			_manager.onClientAuthorized(event); };
 		newClient->spawned = [this](byte id, Spawned spawned) {
 			_manager.onClientSpawned(id, spawned); };
 		//newClient->moved = [this](byte id, Moved moved) {

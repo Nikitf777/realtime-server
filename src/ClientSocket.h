@@ -35,7 +35,7 @@ private:
 	byte getBulletDissapeared(char bytes[], byte from);
 
 public:
-	std::function<void(byte, std::array<char, 15> name)> connected;
+	std::function<void(Player<Authorized>)> connected;
 	std::function<void(byte, Spawned)> spawned;
 	std::function<void(byte, Moved)> moved;
 	std::function<void(byte, float)> rotated;

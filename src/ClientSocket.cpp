@@ -153,8 +153,9 @@ void ClientSocket::authorize(byte id)
 	std::array<char, 15> name{};
 	for (char i = 0; i < nameLength; i++)
 		_name[i] = nameBuffer[i];
+	Player<Authorized> event{ _id, name };
 	if (connected != nullptr)
-		connected(_id, _name);
+		connected(event);
 
 	_connected = true;
 

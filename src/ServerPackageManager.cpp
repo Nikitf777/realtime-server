@@ -1,14 +1,13 @@
 #include "ServerPackageManager.h"
 #define DEBUG
 
-void ServerPackageManager::onClientAuthorized(byte id, std::array<char, 15> name)
+void ServerPackageManager::onClientAuthorized(Player<Authorized> event)
 {
 #ifdef DEBUG
-	std::cout << "onClientConnected\t" << name.data() << std::endl;
+	std::cout << "onClientConnected\t" << event.second.name.data() << std::endl;
 #endif // DEBUG
-	auto player = std::pair(id, name);
-	_connectedClients.safeEnqueue(player);
-	_allConnectedClients.safePushBack(player);
+	_connectedClients.safeEnqueue(event);
+	_allConnectedClients.safePushBack(event);
 }
 
 void ServerPackageManager::onClientSpawned(byte id, Spawned spawned)
@@ -75,20 +74,21 @@ ByteStream ServerPackageManager::getInitialWorldStateStream()
 	//}
 	std::cout << "getAllConnectedPlayers; size = " << (int)_allConnectedClients.size() << std::endl;
 	for (char i = 0; i < _allConnectedClients.size(); i++) {
-		auto& pack = _allConnectedClients[i];
-		auto name = pack.second.data();
-		stream << pack.first;
-		//std::cout << "getAllConnectedPlayers; sended id " << (int)pack.first << std::endl;
-		for (char letter : pack.second)
-			stream << letter;
+		//auto& pack = _allConnectedClients[i];
+		//auto name = pack.second.name.data();
+		//stream << pack.first;
+		////std::cout << "getAllConnectedPlayers; sended id " << (int)pack.first << std::endl;
+		//for (char letter : pack.second.name)
+		//	stream << letter;
+		stream << _allConnectedClients[i];
 	}
 
-	//stream << (byte)_allSpawnedClients.size();
-	//for (char i = 0; i < _allSpawnedClients.size(); i++) {
-	//	auto pack = _allSpawnedClients[i];
-	//	stream << pack.first << pack.second.x << pack.second.y;
-	//	std::cout << "spawned id = " << (int)pack.first << std::endl;
-	//}
+	stream << (byte)_allSpawnedClients.size();
+	for (char i = 0; i < _allSpawnedClients.size(); i++) {
+		auto pack = _allSpawnedClients[i];
+		stream << pack.first << pack.second.x << pack.second.y;
+		std::cout << "spawned id = " << (int)pack.first << std::endl;
+	}
 
 	return stream;
 }
@@ -99,14 +99,15 @@ ByteStream ServerPackageManager::getEventsStream()
 	//std::cout << "Queue count: " << _connectedClients.size() << std::endl;
 	stream << (byte)_connectedClients.size();
 	for (char i = 0; i < _connectedClients.size(); i++) {
-		auto pack = _connectedClients.safeDequeue();
-		//byte bytes[sizeof std::pair<byte, std::array<char, 15>>];
-		//memcpy(bytes, &pack, sizeof bytes);
-		//stream << bytes;
-		auto name = pack.second.data();
-		stream << pack.first/* << stream(pack.second.data(), pack.second.size())*/;
-		for (char letter : pack.second)
-			stream << letter;
+		//auto pack = _connectedClients.safeDequeue();
+		////byte bytes[sizeof std::pair<byte, std::array<char, 15>>];
+		////memcpy(bytes, &pack, sizeof bytes);
+		////stream << bytes;
+		//auto name = pack.second.name.data();
+		//stream << pack.first/* << stream(pack.second.data(), pack.second.size())*/;
+		//for (char letter : pack.second.name)
+		//	stream << letter;
+		stream << _connectedClients.safeDequeue();
 	}
 
 	stream << (byte)_spawnedClients.size();
