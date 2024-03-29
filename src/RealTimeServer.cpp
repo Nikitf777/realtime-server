@@ -1,4 +1,7 @@
+#define DEBUG
+
 #include "RealTimeServer.h"
+
 using namespace clserv;
 
 void RealTimeServer::onClientDisconnected(byte id)
@@ -29,9 +32,9 @@ void RealTimeServer::listen()
 			});
 
 		newClient->connected = [this](byte id, std::array<char, 15> name) {
-			_manager.onClientConnected(id, name); };
-		//newClient->spawned = [this](byte id, Spawned spawned) {
-		//	_manager.onClientSpawned(id, spawned); };
+			_manager.onClientAuthorized(id, name); };
+		newClient->spawned = [this](byte id, Spawned spawned) {
+			_manager.onClientSpawned(id, spawned); };
 		//newClient->moved = [this](byte id, Moved moved) {
 		//	_manager.onClientMoved(id, moved); };
 		//newClient->rotated = [this](byte id, float rotation) {
@@ -61,16 +64,14 @@ void RealTimeServer::mainLoop()
 {
 	while (true)
 	{
-		//const clock_t begin_time = clock();
-		//std::cout << float(clock() - begin_time) / CLOCKS_PER_SEC;
-
 		auto startTime = std::chrono::high_resolution_clock::now();
 		if (_connectActions.size() > 0)
 		{
-			ByteStream stream = _manager.getAllConnectedPlayers();
+			ByteStream stream = _manager.getInitialWorldStateStream();
 			auto message = stream.getVector();
 				for (int i = 0; i < _connectActions.size(); i++) {
 					ClientSocket* client = _connectActions.safeDequeue()();
+#ifdef DEBUG
 					std::cout
 						<< "mailLoop; "
 						<< "_allConnectedPlayers.size() = "
@@ -78,28 +79,22 @@ void RealTimeServer::mainLoop()
 						<< "; message.size() = "
 						<< (int)message.size()
 						<< std::endl;
-					char size;
-					if (message[0] == 3)
-						size = message[0];
-					size = message[0];
-					for (int j = 0; j < size; j++) {
-						int index = 16 * j + 1;
-						std::cout << "sended id " << (int)message[index] << std::endl;
-					}
+					//char size;
+					//if (message[0] == 3)
+					//	size = message[0];
+					//size = message[0];
+					//for (int j = 0; j < size; j++) {
+					//	int index = 16 * j + 1;
+					//	std::cout << "sended id " << (int)message[index] << std::endl;
+					//}
+#endif // DEBUG
+
 					client->send(message);
 				}
 		}
 
-		ByteStream stream = _manager.getByteStream();
+		ByteStream stream = _manager.getEventsStream();
 		std::vector<char> message = stream.getVector();
-		//unsigned char streamBytes[1024];
-		//auto length = stream.getBuf(streamBytes);
-		//
-
-		//message.resize(length);
-
-		//for (unsigned short i = 0; i < length; i++)
-		//	message[i] = streamBytes[i];
 
 		auto& clients = _clients.getMap();
 		for (auto& client : clients) {
@@ -109,7 +104,7 @@ void RealTimeServer::mainLoop()
 
 		auto endTime = std::chrono::high_resolution_clock::now();
 		double delta = std::chrono::duration<double, std::milli>(endTime - startTime).count();
-		const int tickRate = 100;
+		const int tickRate = 10;
 		if (delta < tickRate)
 			std::this_thread::sleep_for(std::chrono::microseconds(tickRate * 1000 - (long long)(delta * 1000)));
 	}

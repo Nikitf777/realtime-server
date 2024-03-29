@@ -203,7 +203,7 @@ void ClientSocket::Receiving()
 	{
 		char buffer[128];
 		byte q = recv((SOCKET)_socket, buffer, sizeof(buffer), 0);
-		//byte pos = getSpawned(buffer, 0);
+		byte pos = getSpawned(buffer, 0);
 		//pos = getMoved(buffer, pos);
 		//pos = getRotated(buffer, pos);
 		//pos = getShot(buffer, pos);

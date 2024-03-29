@@ -1,7 +1,7 @@
 #include "ServerPackageManager.h"
 #define DEBUG
 
-void ServerPackageManager::onClientConnected(byte id, std::array<char, 15> name)
+void ServerPackageManager::onClientAuthorized(byte id, std::array<char, 15> name)
 {
 #ifdef DEBUG
 	std::cout << "onClientConnected\t" << name.data() << std::endl;
@@ -13,7 +13,11 @@ void ServerPackageManager::onClientConnected(byte id, std::array<char, 15> name)
 
 void ServerPackageManager::onClientSpawned(byte id, Spawned spawned)
 {
+#ifdef DEBUG
+	std::cout << "onClientSpawned\t" << (int)id << std::endl;
+#endif // DEBUG
 	_spawnedClients.safeEnqueue(std::pair(id, spawned));
+	_allSpawnedClients.safePushBack(std::pair(id, spawned));
 }
 
 void ServerPackageManager::onClientMoved(byte id, Moved moved)
@@ -61,7 +65,7 @@ void ServerPackageManager::onClientDisconnected(byte id)
 	_disconnectedClients.safeEnqueue(id);
 }
 
-ByteStream ServerPackageManager::getAllConnectedPlayers()
+ByteStream ServerPackageManager::getInitialWorldStateStream()
 {
 	ByteStream stream(512);
 	stream << (byte)_allConnectedClients.size();
@@ -78,10 +82,18 @@ ByteStream ServerPackageManager::getAllConnectedPlayers()
 		for (char letter : pack.second)
 			stream << letter;
 	}
+
+	//stream << (byte)_allSpawnedClients.size();
+	//for (char i = 0; i < _allSpawnedClients.size(); i++) {
+	//	auto pack = _allSpawnedClients[i];
+	//	stream << pack.first << pack.second.x << pack.second.y;
+	//	std::cout << "spawned id = " << (int)pack.first << std::endl;
+	//}
+
 	return stream;
 }
 
-ByteStream ServerPackageManager::getByteStream()
+ByteStream ServerPackageManager::getEventsStream()
 {
 	ByteStream stream(1024);
 	//std::cout << "Queue count: " << _connectedClients.size() << std::endl;
@@ -97,12 +109,12 @@ ByteStream ServerPackageManager::getByteStream()
 			stream << letter;
 	}
 
-	//stream << (byte)_spawnedClients.size();
-	//for (char i = 0; i < _spawnedClients.size(); i++) {
-	//	auto pack = _spawnedClients.safeDequeue();
-	//	stream << pack.first << pack.second.x << pack.second.y;
-	//	std::cout << "spawned id = " << pack.first << std::endl;
-	//}
+	stream << (byte)_spawnedClients.size();
+	for (char i = 0; i < _spawnedClients.size(); i++) {
+		auto pack = _spawnedClients.safeDequeue();
+		stream << pack.first << pack.second.x << pack.second.y;
+		std::cout << "spawned id = " << (int)pack.first << std::endl;
+	}
 
 	//stream << (byte)_movedClients.size();
 	//for (char i = 0; i < _movedClients.size(); i++) {
