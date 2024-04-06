@@ -4,166 +4,145 @@
 void ServerPackageManager::onClientAuthorized(Player<Authorized> event)
 {
 #ifdef DEBUG
-	std::cout << "onClientConnected\t" << event.second.name.data() << std::endl;
+	std::cout << "onClientConnected\t" << event.package.name.data() << std::endl;
 #endif // DEBUG
-	_connectedClients.safeEnqueue(event);
+	_authorizedClients.safeEnqueue(event);
 	_allConnectedClients.safePushBack(event);
 }
 
-void ServerPackageManager::onClientSpawned(byte id, Spawned spawned)
+void ServerPackageManager::onClientSpawned(Player<Spawned> event)
 {
 #ifdef DEBUG
-	std::cout << "onClientSpawned\t" << (int)id << std::endl;
+	std::cout << "onClientSpawned\t" << (int)event.id << std::endl;
 #endif // DEBUG
-	_spawnedClients.safeEnqueue(std::pair(id, spawned));
-	_allSpawnedClients.safePushBack(std::pair(id, spawned));
+	_spawnedClients.safeEnqueue(event);
+	_allSpawnedClients.safePushBack(event);
 }
 
-void ServerPackageManager::onClientMoved(byte id, Moved moved)
+void ServerPackageManager::onClientMoved(Player<Moved> event)
 {
-	_movedClients.safeEnqueue(std::pair(id, moved));
+	_movedClients.safeEnqueue(event);
 }
 
-void ServerPackageManager::onClientRotated(byte id, float rotation)
+void ServerPackageManager::onClientRotated(Player<Rotated> event)
 {
-	_rotatedClients.safeEnqueue(std::pair(id, rotation));
+	_rotatedClients.safeEnqueue(event);
 }
 
-void ServerPackageManager::onClientShot(byte id)
+void ServerPackageManager::onClientShot(Player<Shot> event)
 {
-	_shotClients.safeEnqueue(id);
+	_shotClients.safeEnqueue(event);
 }
 
-void ServerPackageManager::onClientEnemyKilled(byte id, byte enemyId)
+void ServerPackageManager::onClientEnemyKilled(Player<EnemyKilled> event)
 {
-	_enemyKilledClients.safeEnqueue(std::pair(id, enemyId));
+	_enemyKilledClients.safeEnqueue(event);
 }
 
-void ServerPackageManager::onClientBulletSpawned(byte id, byte bulletId)
+void ServerPackageManager::onClientBulletSpawned(Player<BulletSpawned> event)
 {
-	_bulletSpawnedClients.safeEnqueue(std::pair(id, bulletId));
+	_bulletSpawnedClients.safeEnqueue(event);
+	_allSpawnedBullets.safePushBack(event);
 }
 
-void ServerPackageManager::onClientBulletMoved(byte id, BulletMoved bulletSpawned)
+void ServerPackageManager::onClientBulletMoved(Player<BulletMoved> event)
 {
-	_bulletMovedClients.safeEnqueue(std::pair(id, bulletSpawned));
+	_bulletMovedClients.safeEnqueue(event);
 }
 
-void ServerPackageManager::onClientBulletCollided(byte id, byte bulletId)
+void ServerPackageManager::onClientBulletCollided(Player<BulletCollided> event)
 {
-	_bulletCollidedClients.safeEnqueue(std::pair(id, bulletId));
+	_bulletCollidedClients.safeEnqueue(event);
 }
 
-void ServerPackageManager::onClientBulletDissapeared(byte id, byte bulletId)
+void ServerPackageManager::onClientBulletDissapeared(Player<BulletDissapeared> event)
 {
-	_bulletDissapearedClients.safeEnqueue(std::pair(id, bulletId));
+	_bulletDissapearedClients.safeEnqueue(event);
 }
 
-void ServerPackageManager::onClientDisconnected(byte id)
+void ServerPackageManager::onClientDisconnected(PlayerDisconnected event)
 {
-	_disconnectedClients.safeEnqueue(id);
+	_disconnectedClients.safeEnqueue(event);
 }
 
 ByteStream ServerPackageManager::getInitialWorldStateStream()
 {
 	ByteStream stream(512);
+	stream << byte(0);
 	stream << (byte)_allConnectedClients.size();
-
-	//for (auto client : _allConnectedClients) {
-	//	stream;
-	//}
 	std::cout << "getAllConnectedPlayers; size = " << (int)_allConnectedClients.size() << std::endl;
 	for (char i = 0; i < _allConnectedClients.size(); i++) {
-		//auto& pack = _allConnectedClients[i];
-		//auto name = pack.second.name.data();
-		//stream << pack.first;
-		////std::cout << "getAllConnectedPlayers; sended id " << (int)pack.first << std::endl;
-		//for (char letter : pack.second.name)
-		//	stream << letter;
 		stream << _allConnectedClients[i];
 	}
 
 	stream << (byte)_allSpawnedClients.size();
 	for (char i = 0; i < _allSpawnedClients.size(); i++) {
-		auto pack = _allSpawnedClients[i];
-		stream << pack.first << pack.second.x << pack.second.y;
-		std::cout << "spawned id = " << (int)pack.first << std::endl;
+		stream << _allConnectedClients[i];
 	}
 
+	stream << (byte)_allSpawnedBullets.size();
+	for (char i = 0; i < _allSpawnedBullets.size(); i++) {
+		stream << _allSpawnedBullets[i];
+	}
 	return stream;
 }
 
 ByteStream ServerPackageManager::getEventsStream()
 {
 	ByteStream stream(1024);
+	stream << byte(0);
+
 	//std::cout << "Queue count: " << _connectedClients.size() << std::endl;
-	stream << (byte)_connectedClients.size();
-	for (char i = 0; i < _connectedClients.size(); i++) {
-		//auto pack = _connectedClients.safeDequeue();
-		////byte bytes[sizeof std::pair<byte, std::array<char, 15>>];
-		////memcpy(bytes, &pack, sizeof bytes);
-		////stream << bytes;
-		//auto name = pack.second.name.data();
-		//stream << pack.first/* << stream(pack.second.data(), pack.second.size())*/;
-		//for (char letter : pack.second.name)
-		//	stream << letter;
-		stream << _connectedClients.safeDequeue();
+	
+	stream << (byte)_authorizedClients.size();
+	for (char i = 0; i < _authorizedClients.size(); i++) {
+		stream << _authorizedClients.safeDequeue();
 	}
 
 	stream << (byte)_spawnedClients.size();
 	for (char i = 0; i < _spawnedClients.size(); i++) {
-		auto pack = _spawnedClients.safeDequeue();
-		stream << pack.first << pack.second.x << pack.second.y;
-		std::cout << "spawned id = " << (int)pack.first << std::endl;
+		stream << _spawnedClients.safeDequeue();
 	}
 
-	//stream << (byte)_movedClients.size();
-	//for (char i = 0; i < _movedClients.size(); i++) {
-	//	auto pack = _movedClients.dequeue();
-	//	stream << pack.first << pack.second.x << pack.second.y;
-	//}
+	stream << (byte)_movedClients.size();
+	for (char i = 0; i < _movedClients.size(); i++) {
+		stream << _movedClients.safeDequeue();
+	}
 
-	//stream << (byte)_rotatedClients.size();
-	//for (char i = 0; i < _rotatedClients.size(); i++) {
-	//	auto pack = _rotatedClients.dequeue();
-	//	stream << pack.first << pack.second;
-	//}
+	stream << (byte)_rotatedClients.size();
+	for (char i = 0; i < _rotatedClients.size(); i++) {
+		stream << _rotatedClients.safeDequeue();
+	}
 
-	//stream << (byte)_shotClients.size();
-	//for (char i = 0; i < _shotClients.size(); i++) {
-	//	auto pack = _shotClients.dequeue();
-	//	stream << pack;
-	//}
+	stream << (byte)_shotClients.size();
+	for (char i = 0; i < _shotClients.size(); i++) {
+		stream << _shotClients.safeDequeue();
+	}
 
-	//stream << (byte)_enemyKilledClients.size();
-	//for (char i = 0; i < _enemyKilledClients.size(); i++) {
-	//	auto pack = _enemyKilledClients.dequeue();
-	//	stream << pack.first << pack.second;
-	//}
+	stream << (byte)_enemyKilledClients.size();
+	for (char i = 0; i < _enemyKilledClients.size(); i++) {
+		stream << _enemyKilledClients.safeDequeue();
+	}
 
-	//stream << (byte)_bulletSpawnedClients.size();
-	//for (char i = 0; i < _bulletSpawnedClients.size(); i++) {
-	//	auto pack = _bulletSpawnedClients.dequeue();
-	//	stream << pack.first << pack.second;
-	//}
+	stream << (byte)_bulletSpawnedClients.size();
+	for (char i = 0; i < _bulletSpawnedClients.size(); i++) {
+		stream << _bulletSpawnedClients.safeDequeue();
+	}
 
-	//stream << (byte)_bulletMovedClients.size();
-	//for (char i = 0; i < _bulletMovedClients.size(); i++) {
-	//	auto pack = _bulletMovedClients.dequeue();
-	//	stream << pack.first << pack.second.bulletId << pack.second.x << pack.second.y;
-	//}
+	stream << (byte)_bulletMovedClients.size();
+	for (char i = 0; i < _bulletMovedClients.size(); i++) {
+		stream << _bulletMovedClients.safeDequeue();
+	}
 
-	//stream << (byte)_bulletCollidedClients.size();
-	//for (char i = 0; i < _bulletCollidedClients.size(); i++){
-	//	auto pack = _bulletCollidedClients.dequeue();
-	//	stream << pack.first << pack.second;
-	//}
+	stream << (byte)_bulletCollidedClients.size();
+	for (char i = 0; i < _bulletCollidedClients.size(); i++){
+		stream << _bulletCollidedClients.safeDequeue();
+	}
 
-	//stream << (byte)_bulletDissapearedClients.size();
-	//for (char i = 0; i < _bulletDissapearedClients.size(); i++){
-	//	auto pack = _bulletDissapearedClients.dequeue();
-	//	stream << pack.first << pack.second;
-	//}
+	stream << (byte)_bulletDissapearedClients.size();
+	for (char i = 0; i < _bulletDissapearedClients.size(); i++){
+		stream << _bulletDissapearedClients.safeDequeue();
+	}
 
 	return stream;
 }

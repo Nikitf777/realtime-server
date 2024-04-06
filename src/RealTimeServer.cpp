@@ -4,9 +4,9 @@
 
 using namespace clserv;
 
-void RealTimeServer::onClientDisconnected(byte id)
+void RealTimeServer::onClientDisconnected(PlayerDisconnected event)
 {
-	_clients.remove(id);
+	_clients.remove(event.id);
 }
 
 RealTimeServer::RealTimeServer(int port, uint8_t serverCapacity) :
@@ -33,28 +33,28 @@ void RealTimeServer::listen()
 
 		newClient->connected = [this](Player<Authorized> event) {
 			_manager.onClientAuthorized(event); };
-		newClient->spawned = [this](byte id, Spawned spawned) {
-			_manager.onClientSpawned(id, spawned); };
-		//newClient->moved = [this](byte id, Moved moved) {
-		//	_manager.onClientMoved(id, moved); };
-		//newClient->rotated = [this](byte id, float rotation) {
-		//	_manager.onClientRotated(id, rotation); };
-		//newClient->shot = [this](byte id) {
-		//	_manager.onClientShot(id); };
-		//newClient->enemyKilled = [this](byte id, char enemyId) {
-		//	_manager.onClientEnemyKilled(id, enemyId); };
-		//newClient->bulletSpawned = [this](byte id, byte bulletId) {
-		//	_manager.onClientBulletSpawned(id, bulletId); };
-		//newClient->bulletMoved = [this](byte id, BulletMoved bulletMoved) {
-		//	_manager.onClientBulletMoved(id, bulletMoved); };
-		//newClient->bulletCollided = [this](byte id, char bulletId) {
-		//	_manager.onClientBulletCollided(id, bulletId); };
-		//newClient->bulletDissapeared = [this](byte id, char bulletDissapeared) {
-		//	_manager.onClientBulletDissapeared(id, bulletDissapeared); };
+		newClient->spawnedEvent = [this](Player<Spawned> event) {
+			_manager.onClientSpawned(event); };
+		newClient->movedEvent = [this](Player<Moved> event) {
+			_manager.onClientMoved(event); };
+		newClient->rotatedEvent = [this](Player<Rotated> event) {
+			_manager.onClientRotated(event); };
+		newClient->shotEvent = [this](Player<Shot> event) {
+			_manager.onClientShot(event); };
+		newClient->enemyKilledEvent = [this](Player<EnemyKilled> event) {
+			_manager.onClientEnemyKilled(event); };
+		newClient->bulletSpawnedEvent = [this](Player<BulletSpawned>  event) {
+			_manager.onClientBulletSpawned(event); };
+		newClient->bulletMoved = [this](Player<BulletMoved> event) {
+			_manager.onClientBulletMoved(event); };
+		newClient->bulletCollidedEvent = [this](Player<BulletCollided> event) {
+			_manager.onClientBulletCollided(event); };
+		newClient->bulletDissapearedEvent = [this](Player<BulletDissapeared> event) {
+			_manager.onClientBulletDissapeared(event); };
 
-		newClient->disconnected = [this](byte id) {
-			onClientDisconnected(id);
-			_manager.onClientDisconnected(id);
+		newClient->disconnected = [this](PlayerDisconnected event) {
+			onClientDisconnected(event);
+			_manager.onClientDisconnected(event);
 			};
 
 	}
@@ -68,7 +68,10 @@ void RealTimeServer::mainLoop()
 		if (_connectActions.size() > 0)
 		{
 			ByteStream stream = _manager.getInitialWorldStateStream();
-			auto message = stream.getVector();
+
+			unsigned char* message = new unsigned char[stream.getLength()];
+			size_t size = stream.getLength();
+			stream.getBuf(message);
 				for (int i = 0; i < _connectActions.size(); i++) {
 					ClientSocket* client = _connectActions.safeDequeue()();
 #ifdef DEBUG
@@ -77,7 +80,7 @@ void RealTimeServer::mainLoop()
 						<< "_allConnectedPlayers.size() = "
 						<< (int)message[0]
 						<< "; message.size() = "
-						<< (int)message.size()
+						<< (int)size
 						<< std::endl;
 					//char size;
 					//if (message[0] == 3)
@@ -89,23 +92,28 @@ void RealTimeServer::mainLoop()
 					//}
 #endif // DEBUG
 
-					client->send(message);
+					client->send((char*)message, size);
 				}
 		}
 
 		ByteStream stream = _manager.getEventsStream();
+		
 		std::vector<char> message = stream.getVector();
-
+		unsigned char* buffer = new unsigned char[stream.getLength()];
+		stream.getBuf(buffer);
 		auto& clients = _clients.getMap();
 		for (auto& client : clients) {
-			if (client.second->isConnected())
-				client.second->send(message);
+			if (client.second->isConnected()) {
+				client.second->send((char*)buffer, stream.getLength());
+			}
 		}
 
 		auto endTime = std::chrono::high_resolution_clock::now();
-		double delta = std::chrono::duration<double, std::milli>(endTime - startTime).count();
-		const int tickRate = 10;
-		if (delta < tickRate)
-			std::this_thread::sleep_for(std::chrono::microseconds(tickRate * 1000 - (long long)(delta * 1000)));
+		double delta = std::chrono::duration<double, std::micro>(endTime - startTime).count();
+		const float tickRate = 0.5;
+		const int sec_microsec = 1000000;
+		int period = std::micro::den / tickRate;
+		if (delta < period)
+			std::this_thread::sleep_for(std::chrono::microseconds(period - (long long)delta));
 	}
 }

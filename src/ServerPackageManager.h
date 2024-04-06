@@ -10,36 +10,34 @@ class ServerPackageManager
 {
 private:
 	SafeList<Player<Authorized>> _allConnectedClients;
-	SafeList<std::pair<byte, Spawned>> _allSpawnedClients;
-	SafeList<std::pair<byte, std::pair<byte, Transform>>> _allSpawnedBullets;
+	SafeList<Player<Spawned>> _allSpawnedClients;
+	SafeList<Player<BulletSpawned>> _allSpawnedBullets;
 
-	SafeQueue<Player<Authorized>> _connectedClients;
-	SafeQueue<std::pair<byte, Spawned>> _spawnedClients;
-	SafeQueue<std::pair<byte, Moved>> _movedClients;
-	SafeQueue<std::pair<byte, float>> _rotatedClients;
-	SafeQueue<byte> _shotClients;
-	SafeQueue<std::pair<byte, byte>> _enemyKilledClients;
-	SafeQueue<std::pair<byte, byte>> _bulletSpawnedClients;
-	SafeQueue<std::pair<byte, BulletMoved>> _bulletMovedClients;
-	SafeQueue<std::pair<byte, byte>> _bulletCollidedClients;
-	SafeQueue<std::pair<byte, byte>> _bulletDissapearedClients;
-
-	SafeQueue<byte> _disconnectedClients;
+	SafeQueue<Player<Authorized>> _authorizedClients;
+	SafeQueue<Player<Spawned>> _spawnedClients;
+	SafeQueue<Player<Moved>> _movedClients;
+	SafeQueue<Player<Rotated>> _rotatedClients;
+	SafeQueue<Player<Shot>> _shotClients;
+	SafeQueue<Player<EnemyKilled>> _enemyKilledClients;
+	SafeQueue<Player<BulletSpawned>> _bulletSpawnedClients;
+	SafeQueue<Player<BulletMoved>> _bulletMovedClients;
+	SafeQueue<Player<BulletCollided>> _bulletCollidedClients;
+	SafeQueue<Player<BulletDissapeared>> _bulletDissapearedClients;
+	SafeQueue<PlayerDisconnected> _disconnectedClients;
 
 public:
 
 	void onClientAuthorized(Player<Authorized> event);
-	void onClientSpawned(byte id, Spawned spawned);
-	void onClientMoved(byte id, Moved moved);
-	void onClientRotated(byte id, float rotation);
-	void onClientShot(byte id);
-	void onClientEnemyKilled(byte id, byte enemyId);
-	void onClientBulletSpawned(byte id, byte bulletId);
-	void onClientBulletMoved(byte id, BulletMoved bulletSpawned);
-	void onClientBulletCollided(byte id, byte bulletId);
-	void onClientBulletDissapeared(byte id, byte bulletId);
-
-	void onClientDisconnected(byte id);
+	void onClientSpawned(Player<Spawned> event);
+	void onClientMoved(Player<Moved> event);
+	void onClientRotated(Player<Rotated> event);
+	void onClientShot(Player<Shot> event);
+	void onClientEnemyKilled(Player<EnemyKilled> event);
+	void onClientBulletSpawned(Player<BulletSpawned> event);
+	void onClientBulletMoved(Player<BulletMoved> event);
+	void onClientBulletCollided(Player<BulletCollided> event);
+	void onClientBulletDissapeared(Player<BulletDissapeared> event);
+	void onClientDisconnected(PlayerDisconnected event);
 
 	//ByteStream getAllConnectedPlayers();
 	//ByteStream getAllSpawnedPlayers();

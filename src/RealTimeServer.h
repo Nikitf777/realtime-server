@@ -5,6 +5,15 @@
 #include "ServerPackageManager.h"
 #include <list>
 
+struct Player {
+	Transform transform;
+};
+
+struct Client {
+	Player player;
+	ClientSocket socket;
+};
+
 class RealTimeServer : clserv::TcpListenerAsync
 {
 public:
@@ -19,7 +28,7 @@ private:
 	const uint8_t _serverCapacity;
 	ServerPackageManager _manager;
 
-	void onClientDisconnected(byte id);
+	void onClientDisconnected(PlayerDisconnected event);
 
 public:
 	RealTimeServer(int port, uint8_t serverCapacity);

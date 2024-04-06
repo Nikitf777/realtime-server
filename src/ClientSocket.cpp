@@ -1,142 +1,150 @@
 #include "ClientSocket.h"
 
 //#define DEBUG
+using std::optional;
 
-byte ClientSocket::getSpawned(char bytes[], byte from)
+void ClientSocket::getSpawned(ByteStream& stream)
 {
-	if (bytes[from] == false) { _spawned = std::nullopt; return ++from; }
+	optional<Spawned> event;
+	stream >> event;
+	if (!event)
+		return;
 
-	float x, y;
-	char X[] = { bytes[from + 1], bytes[from + 2], bytes[from + 3], bytes[from + 4] };
-	char Y[] = { bytes[from + 5], bytes[from + 6], bytes[from + 7], bytes[from + 8] };
-	memcpy(&x, &X, sizeof(x));
-	memcpy(&y, &Y, sizeof(y));
-	_spawned = { x, y };
-#ifdef DEBUG
-	std::cout << '(' << x << ',' << y << ")\n";
-#endif // DEBUG
-
-	if (spawned != nullptr)
-		spawned(_id, _spawned.value());
-	return from + 9;
-}
-byte ClientSocket::getMoved(char bytes[], byte from)
-{
-	if (bytes[from] == false) { _moved = std::nullopt; return ++from; }
-
-	float x, y;
-	char X[] = { bytes[from + 1], bytes[from + 2], bytes[from + 3], bytes[from + 4] };
-	char Y[] = { bytes[from + 5], bytes[from + 6], bytes[from + 7], bytes[from + 8] };
-	memcpy(&x, &X, sizeof(x));
-	memcpy(&y, &Y, sizeof(y));
-	_moved = { x, y };
-#ifdef DEBUG
-	std::cout << '(' << x << ',' << y << ")\n";
-#endif // DEBUG
-
-	if (moved != nullptr)
-		moved(_id, _moved.value());
-	return from + 9;
+	if (spawnedEvent != nullptr)
+		spawnedEvent({ _id, event.value()});
 }
 
-byte ClientSocket::getRotated(char bytes[], byte from)
+void ClientSocket::getMoved(ByteStream& stream)
 {
-	if (bytes[from] == false) { _rotated = std::nullopt; return ++from; }
+	optional<Moved> event;
+	stream >> event;
+	if (!event)
+		return;
 
-	float r;
-	char R[] = { bytes[from + 1], bytes[from + 2], bytes[from + 3], bytes[from + 4] };
-	memcpy(&r, &R, sizeof(r));
-	_rotated = r;
-	std::cout << "r = " << r << '\n';
-#ifdef DEBUG
-#endif // DEBUG
-
-	if (rotated != nullptr)
-		rotated(_id, _rotated.value());
-	return from + 5;
+	if (movedEvent != nullptr)
+		movedEvent({ _id, event.value()});
 }
-byte ClientSocket::getShot(char bytes[], byte from)
-{
-	_shot = bytes[from];
-	if (_shot && shot != nullptr)
-		shot(_id);
-	if (_shot)
-#ifdef DEBUG
-		std::cout << "Shot: " << _shot << '\n';
-#endif // DEBUG
 
-	return from + 1;
+void ClientSocket::getRotated(ByteStream& stream)
+{
+	optional<Rotated> event;
+	stream >> event;
+	if (!event)
+		return;
+
+	if (rotatedEvent != nullptr)
+		rotatedEvent({_id, event.value()});
 }
-byte ClientSocket::getEnemyKilled(char bytes[], byte from)
+void ClientSocket::getShot(ByteStream& stream)
 {
-	if (bytes[from] == false) { _enemyKilled = std::nullopt; return ++from; }
-	_enemyKilled = bytes[from + 1];
+	optional<Shot> event;
+	stream >> event;
+	if (!event)
+		return;
 
-	if (enemyKilled != nullptr)
-		enemyKilled(_id, _enemyKilled.value());
-	return from + 2;
+		if (shotEvent != nullptr)
+			shotEvent({ _id, event.value() });
 }
-byte ClientSocket::getBulletSpawned(char bytes[], byte from)
+void ClientSocket::getEnemyKilled(ByteStream& stream)
 {
-	if (bytes[from] == false) { _bulletSpawned = std::nullopt; return ++from; }
-	byte id = bytes[from + 1];
-	_bulletSpawned = id;
-#ifdef DEBUG
-	std::cout << "Spawned with rotation: " << r << '\n';
-#endif // DEBUG
-
-
-	if (bulletSpawned != nullptr)
-		bulletSpawned(_id, _bulletSpawned.value());
-
-	return from + 2;
+	optional<EnemyKilled> event;
+	stream >> event;
+	if (!event)
+		return;
+	if (enemyKilledEvent != nullptr)
+		enemyKilledEvent({ _id, event.value()});
 }
-byte ClientSocket::getBulletMoved(char bytes[], byte from)
+void ClientSocket::getBulletSpawned(ByteStream& stream)
 {
-	if (bytes[from] == false) { _bulletMoved = std::nullopt; return ++from; }
-	byte id = bytes[from + 1];
-	float x, y;
-	char X[] = { bytes[from + 2], bytes[from + 3], bytes[from + 4], bytes[from + 5] };
-	char Y[] = { bytes[from + 6], bytes[from + 7], bytes[from + 8], bytes[from + 9] };
-	memcpy(&x, &X, sizeof(x));
-	memcpy(&y, &Y, sizeof(y));
-	_bulletMoved = { id, x, y };
-#ifdef DEBUG
-	std::cout << "Bullet: " << id << " - (" << x << ',' << y << ")\n";
-#endif // DEBUG
+	optional<BulletSpawned> event;
+	stream >> event;
+	if (!event)
+		return;
+
+
+	if (bulletSpawnedEvent != nullptr)
+		bulletSpawnedEvent({ _id, event.value() });
+}
+void ClientSocket::getBulletMoved(ByteStream& stream)
+{
+	optional<BulletMoved> event;
+	stream >> event;
+	if (!event)
+		return;
 
 
 	if (bulletMoved != nullptr)
-		bulletMoved(_id, _bulletMoved.value());
-
-	return from + 10;
+		bulletMoved({ _id, event.value() });
 }
-byte ClientSocket::getBulletCollided(char bytes[], byte from)
+void ClientSocket::getBulletCollided(ByteStream& stream)
 {
-	if (bytes[from] == false) { _bulletCollided = std::nullopt; return ++from; }
-	_bulletCollided = bytes[from + 1];
-#ifdef DEBUG
-	std::cout << _bulletCollided.value() << " bullet collided\n";
-#endif // DEBUG
+	optional<BulletCollided> event;
+	stream >> event;
+	if (!event)
+		return;
 
 
-	if (bulletCollided != nullptr)
-		bulletCollided(_id, _bulletCollided.value());
-	return from + 2;
+	if (bulletCollidedEvent != nullptr)
+		bulletCollidedEvent({ _id, event.value() });
 }
-byte ClientSocket::getBulletDissapeared(char bytes[], byte from)
+void ClientSocket::getBulletDissapeared(ByteStream& stream)
 {
-	if (bytes[from] == false) { _bulletDissapeared = std::nullopt; return ++from; }
-	_bulletDissapeared = bytes[from + 1];
-	std::cout << _bulletDissapeared.value() << " bullet dissapeared\n";
-#ifdef DEBUG
-#endif // DEBUG
+	optional<BulletDissapeared> event;
+	stream >> event;
+	if (!event)
+		return;
 
 
-	if (bulletDissapeared != nullptr)
-		bulletDissapeared(_id, _bulletDissapeared.value());
-	return from + 2;
+	if (bulletDissapearedEvent != nullptr)
+		bulletDissapearedEvent({ _id, event.value() });
 }
+void ClientSocket::emitSignals(PackageFromPlayer& package)
+{
+	if (package.spawned.hasValue && spawnedEvent) {
+		spawnedEvent({ _id, package.spawned.value });
+	}
+
+	if (package.moved.hasValue && movedEvent) {
+		movedEvent({ _id, package.moved.value });
+	}
+
+	if (package.rotated.hasValue && rotatedEvent) {
+		rotatedEvent({ _id, package.rotated.value });
+	}
+
+	if (package.shot.hasValue && shotEvent) {
+		shotEvent({ _id, package.shot.value });
+	}
+
+	if (package.enemyKilled.hasValue && enemyKilledEvent) {
+		enemyKilledEvent({ _id, package.enemyKilled.value });
+	}
+
+	if (package.bulletSpawned.hasValue && bulletSpawnedEvent) {
+		bulletSpawnedEvent({ _id, package.bulletSpawned.value });
+	}
+
+	if (package.bulletCollided.hasValue && bulletCollidedEvent) {
+		bulletCollidedEvent({ _id, package.bulletCollided.value });
+	}
+
+	if (package.bulletDissapeared.hasValue && bulletDissapearedEvent) {
+		bulletDissapearedEvent({ _id, package.bulletDissapeared.value });
+	}
+}
+
+void ClientSocket::printAligned(char* buffer, size_t size, unsigned char alignment)
+{
+	size_t rowCount = size / alignment;
+	for (size_t i = 0; i < rowCount; i++) {
+		std::cout << (unsigned int)(i * alignment) << ":\t";
+		for (char j = 0; j < alignment; j++) {
+			std::cout << (unsigned int)(unsigned char)buffer[i * alignment + j] << '\t';
+		}
+		std::cout << std::endl;
+	}
+}
+
 ClientSocket::ClientSocket(clserv::TcpSocket socket)
 {
 	_socket = socket;
@@ -147,7 +155,7 @@ void ClientSocket::authorize(byte id)
 {
 	_id = id;
 	char buffer[1] = { _id };
-	_socket.send(buffer, sizeof(buffer));
+	send(buffer, sizeof(buffer));
 	char nameBuffer[15];
 	char nameLength = _socket.receive(nameBuffer, sizeof(nameBuffer));
 	std::array<char, 15> name{};
@@ -162,58 +170,50 @@ void ClientSocket::authorize(byte id)
 	std::thread([this] {
 		Receiving();
 		}).detach();
-
-	std::thread([this] {
-		Sending();
-		}).detach();
-}
-
-void ClientSocket::Sending()
-{
-	while (true)
-	{
-		while (_stop)
-		{
-			std::this_thread::yield();
-		}
-
-		try
-		{
-			int bytesCount = _socket.send(_bytesToSend.data(), _bytesToSend.size());
-#ifdef DEBUG
-			std::cout << "Sended " << bytesCount << " bytes to client " << (int)_id << '\n';
-#endif // DEBUG
-			_stop = true;
-		}
-		catch (const std::exception&)
-		{
-			if (disconnected != nullptr)
-				disconnected(_id);
-#ifdef DEBUG
-			std::cout << "Client " << _id << " disconnected\n";
-#endif // DEBUG
-
-			return;
-		}
-	}
 }
 
 void ClientSocket::Receiving()
 {
 	while (true)
 	{
-		char buffer[128];
-		byte q = recv((SOCKET)_socket, buffer, sizeof(buffer), 0);
-		byte pos = getSpawned(buffer, 0);
-		//pos = getMoved(buffer, pos);
-		//pos = getRotated(buffer, pos);
-		//pos = getShot(buffer, pos);
-		//pos = getEnemyKilled(buffer, pos);
-		//pos = getBulletSpawned(buffer, pos);
-		//pos = getBulletMoved(buffer, pos);
-		//pos = getBulletCollided(buffer, pos);
-		//getBulletDissapeared(buffer, pos);
-	}	
+		auto startTime = std::chrono::high_resolution_clock::now();
+		char stopBuffer[1] = { 1 };
+		send((char*)stopBuffer, 1);
+		char buffer[sizeof PackageFromPlayer];
+		auto receivedCount = recv((SOCKET)_socket, buffer, sizeof(buffer), 0);
+		ByteStream stream((unsigned char*)buffer, receivedCount);
+
+		//getSpawned(stream);
+		//getMoved(stream);
+		//getRotated(stream);
+		//getShot(stream);
+		//getEnemyKilled(stream);
+		//getBulletSpawned(stream);
+		//getBulletMoved(stream);
+		//getBulletCollided(stream);
+		//getBulletDissapeared(stream);
+
+#ifdef DEBUG
+		std::cout << "Received " << receivedCount << " bytes\n";
+		char xarr[] = { buffer[16], buffer[17], buffer[18], buffer[19] };
+		float x = *(float*)xarr;
+		std::cout << "24 byte = " << (bool)buffer[24] << std::endl;
+		std::cout << "moved.position.x (from buffer) = " << x << std::endl;
+		
+#endif // !DEBUG
+
+		auto package = stream.read<PackageFromPlayer>();
+		emitSignals(package);
+		std::cout << package.toString();
+
+		auto endTime = std::chrono::high_resolution_clock::now();
+		double delta = std::chrono::duration<double, std::micro>(endTime - startTime).count();
+		const float tickRate = 0.5;
+		const int sec_microsec = 1000000;
+		int period = std::micro::den / tickRate;
+		if (delta < period)
+			std::this_thread::sleep_for(std::chrono::microseconds(period - (long long)delta));
+	}
 }
 
 void ClientSocket::stop()
@@ -221,11 +221,18 @@ void ClientSocket::stop()
 	_stop = true;
 }
 
-void ClientSocket::send(std::vector<char> bytes)
+void ClientSocket::send(const char* buffer, int size)
 {
-	if (!_connected) return;
-	_bytesToSend = bytes;
-	_stop = false;
+	_mutex.lock();
+	try
+	{
+		std::cout << _socket.send(buffer, size) << std::endl;
+	}
+	catch (const std::exception&)
+	{
+		std::cout << "Player " << _id << " disconnected\n";
+	}
+	_mutex.unlock();
 }
 
 bool ClientSocket::isConnected() const

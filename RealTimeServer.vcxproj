@@ -152,6 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ByteStream\ByteStream.cpp" />
+    <ClCompile Include="src\PackageFromPlayer.cpp" />
     <ClCompile Include="src\ServerPackageManager.cpp" />
     <ClCompile Include="src\ClientSocket.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -160,6 +161,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ByteStream\ByteStream.h" />
+    <ClInclude Include="src\PackageFromPlayer.h" />
     <ClInclude Include="src\SafeList.h" />
     <ClInclude Include="src\AutoMap.h" />
     <ClInclude Include="src\PackageStructs.h" />
